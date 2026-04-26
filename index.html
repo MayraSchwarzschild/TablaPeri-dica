@@ -1,376 +1,403 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-
-// Base de datos de 118 elementos con categorías correctas para arreglar el tema de colores
-const rawElements = [
-  [1, 'H', 'Hidrógeno', 'nonmetal'], [2, 'He', 'Helio', 'noble'], [3, 'Li', 'Litio', 'alkali'], [4, 'Be', 'Berilio', 'alkaline'], [5, 'B', 'Boro', 'metalloid'], [6, 'C', 'Carbono', 'nonmetal'], [7, 'N', 'Nitrógeno', 'nonmetal'], [8, 'O', 'Oxígeno', 'nonmetal'], [9, 'F', 'Flúor', 'halogen'], [10, 'Ne', 'Neón', 'noble'],
-  [11, 'Na', 'Sodio', 'alkali'], [12, 'Mg', 'Magnesio', 'alkaline'], [13, 'Al', 'Aluminio', 'post-transition'], [14, 'Si', 'Silicio', 'metalloid'], [15, 'P', 'Fósforo', 'nonmetal'], [16, 'S', 'Azufre', 'nonmetal'], [17, 'Cl', 'Cloro', 'halogen'], [18, 'Ar', 'Argón', 'noble'],
-  [19, 'K', 'Potasio', 'alkali'], [20, 'Ca', 'Calcio', 'alkaline'], [21, 'Sc', 'Escandio', 'transition'], [22, 'Ti', 'Titanio', 'transition'], [23, 'V', 'Vanadio', 'transition'], [24, 'Cr', 'Cromo', 'transition'], [25, 'Mn', 'Manganeso', 'transition'], [26, 'Fe', 'Hierro', 'transition'], [27, 'Co', 'Cobalto', 'transition'], [28, 'Ni', 'Níquel', 'transition'], [29, 'Cu', 'Cobre', 'transition'], [30, 'Zn', 'Zinc', 'transition'], [31, 'Ga', 'Galio', 'post-transition'], [32, 'Ge', 'Germanio', 'metalloid'], [33, 'As', 'Arsénico', 'metalloid'], [34, 'Se', 'Selenio', 'nonmetal'], [35, 'Br', 'Bromo', 'halogen'], [36, 'Kr', 'Criptón', 'noble'],
-  [37, 'Rb', 'Rubidio', 'alkali'], [38, 'Sr', 'Estroncio', 'alkaline'], [39, 'Y', 'Itrio', 'transition'], [40, 'Zr', 'Circonio', 'transition'], [41, 'Nb', 'Niobio', 'transition'], [42, 'Mo', 'Molibdeno', 'transition'], [43, 'Tc', 'Tecnecio', 'transition'], [44, 'Ru', 'Rutenio', 'transition'], [45, 'Rh', 'Rodio', 'transition'], [46, 'Pd', 'Paladio', 'transition'], [47, 'Ag', 'Plata', 'transition'], [48, 'Cd', 'Cadmio', 'transition'], [49, 'In', 'Indio', 'post-transition'], [50, 'Sn', 'Estaño', 'post-transition'], [51, 'Sb', 'Antimonio', 'metalloid'], [52, 'Te', 'Telurio', 'metalloid'], [53, 'I', 'Yodo', 'halogen'], [54, 'Xe', 'Xenón', 'noble'],
-  [55, 'Cs', 'Cesio', 'alkali'], [56, 'Ba', 'Bario', 'alkaline'], [57, 'La', 'Lantano', 'lanthanide'], [58, 'Ce', 'Cerio', 'lanthanide'], [59, 'Pr', 'Praseodimio', 'lanthanide'], [60, 'Nd', 'Neodimio', 'lanthanide'], [61, 'Pm', 'Prometio', 'lanthanide'], [62, 'Sm', 'Samario', 'lanthanide'], [63, 'Eu', 'Europio', 'lanthanide'], [64, 'Gd', 'Gadolinio', 'lanthanide'], [65, 'Tb', 'Terbio', 'lanthanide'], [66, 'Dy', 'Disprosio', 'lanthanide'], [67, 'Ho', 'Holmio', 'lanthanide'], [68, 'Er', 'Erbio', 'lanthanide'], [69, 'Tm', 'Tulio', 'lanthanide'], [70, 'Yb', 'Iterbio', 'lanthanide'], [71, 'Lu', 'Lutecio', 'lanthanide'],
-  [72, 'Hf', 'Hafnio', 'transition'], [73, 'Ta', 'Tantalio', 'transition'], [74, 'W', 'Wolframio', 'transition'], [75, 'Re', 'Renio', 'transition'], [76, 'Os', 'Osmio', 'transition'], [77, 'Ir', 'Iridio', 'transition'], [78, 'Pt', 'Platino', 'transition'], [79, 'Au', 'Oro', 'transition'], [80, 'Hg', 'Mercurio', 'transition'], [81, 'Tl', 'Talio', 'post-transition'], [82, 'Pb', 'Plomo', 'post-transition'], [83, 'Bi', 'Bismuto', 'post-transition'], [84, 'Po', 'Polonio', 'metalloid'], [85, 'At', 'Astato', 'halogen'], [86, 'Rn', 'Radón', 'noble'],
-  [87, 'Fr', 'Francio', 'alkali'], [88, 'Ra', 'Radio', 'alkaline'], [89, 'Ac', 'Actinio', 'actinide'], [90, 'Th', 'Torio', 'actinide'], [91, 'Pa', 'Protactinio', 'actinide'], [92, 'U', 'Uranio', 'actinide'], [93, 'Np', 'Neptunio', 'actinide'], [94, 'Pu', 'Plutonio', 'actinide'], [95, 'Am', 'Americio', 'actinide'], [96, 'Cm', 'Curio', 'actinide'], [97, 'Bk', 'Berkelio', 'actinide'], [98, 'Cf', 'Californio', 'actinide'], [99, 'Es', 'Einstenio', 'actinide'], [100, 'Fm', 'Fermio', 'actinide'], [101, 'Md', 'Mendelevio', 'actinide'], [102, 'No', 'Nobelio', 'actinide'], [103, 'Lr', 'Lawrencio', 'actinide'],
-  [104, 'Rf', 'Rutherfordio', 'transition'], [105, 'Db', 'Dubnio', 'transition'], [106, 'Sg', 'Seaborgio', 'transition'], [107, 'Bh', 'Bohrio', 'transition'], [108, 'Hs', 'Hassio', 'transition'], [109, 'Mt', 'Meitnerio', 'transition'], [110, 'Ds', 'Darmstadtio', 'transition'], [111, 'Rg', 'Roentgenio', 'transition'], [112, 'Cn', 'Copernicio', 'transition'], [113, 'Nh', 'Nihonio', 'post-transition'], [114, 'Fl', 'Flerovio', 'post-transition'], [115, 'Mc', 'Moscovio', 'post-transition'], [116, 'Lv', 'Livermorio', 'post-transition'], [117, 'Ts', 'Teneso', 'halogen'], [118, 'Og', 'Oganesón', 'noble']
-];
-
-// Datos termodinámicos y particulares para elementos notables
-const detailedData = {
-  1: { melt: 13.99, boil: 20.27, mass: 1.008, fact: "Elemento más abundante del universo." },
-  2: { melt: 0.95, boil: 4.22, mass: 4.0026, fact: "Único elemento que no se solidifica a presión normal." },
-  6: { melt: 3800, boil: 4300, mass: 12.011, fact: "Base de la vida en la Tierra." },
-  8: { melt: 54.36, boil: 90.18, mass: 15.999, fact: "Gas vital para la respiración aeróbica." },
-  26: { melt: 1811, boil: 3134, mass: 55.845, fact: "Elemento principal del núcleo terrestre." },
-  29: { melt: 1357.77, boil: 2835, mass: 63.546, fact: "Excelente conductor eléctrico y antibacteriano." },
-  35: { melt: 265.8, boil: 332.0, mass: 79.904, fact: "Uno de los dos únicos elementos líquidos a temperatura ambiente." },
-  47: { melt: 1234.93, boil: 2435, mass: 107.87, fact: "Mejor conductor térmico y eléctrico." },
-  79: { melt: 1337.33, boil: 3243, mass: 196.97, fact: "Metal extremadamente maleable e inerte." },
-  80: { melt: 234.32, boil: 629.88, mass: 200.59, fact: "Único metal líquido a temperatura ambiente." },
-  92: { melt: 1405.3, boil: 4404, mass: 238.03, fact: "Principal combustible para reactores nucleares." },
-};
-
-// Constructor de la tabla completa
-const fullElements = rawElements.map(data => {
-  const [z, sym, name, cat] = data;
-  let row = 0, col = 0;
-  
-  if (z >= 57 && z <= 71) { row = 9; col = z - 53; }
-  else if (z >= 89 && z <= 103) { row = 10; col = z - 85; }
-  else {
-    if (z <= 2) { row = 1; col = z === 1 ? 1 : 18; }
-    else if (z <= 10) { row = 2; col = z <= 4 ? z - 2 : z + 8; }
-    else if (z <= 18) { row = 3; col = z <= 12 ? z - 10 : z; }
-    else if (z <= 36) { row = 4; col = z - 18; }
-    else if (z <= 54) { row = 5; col = z - 36; }
-    else if (z <= 86) { row = 6; col = z - 54 > 17 ? z - 68 : z - 54; }
-    else { row = 7; col = z - 86 > 17 ? z - 100 : z - 86; }
-  }
-
-  const details = detailedData[z] || {};
-  return { 
-    z, sym, name, cat, row, col, 
-    melt: details.melt || (z > 103 ? null : 1000 + (z % 10) * 100), // Estimación visual para simulación
-    boil: details.boil || (z > 103 ? null : 2500 + (z % 10) * 100), // Estimación visual para simulación
-    mass: details.mass || (z * 2.5).toFixed(2),
-    fact: details.fact || "Datos avanzados disponibles mediante el asistente IA."
-  };
-});
-
-const categoryColors = {
-  'nonmetal': 'bg-emerald-900/40 text-emerald-300 border-emerald-600',
-  'noble': 'bg-purple-900/40 text-purple-300 border-purple-600',
-  'alkali': 'bg-red-900/40 text-red-300 border-red-600',
-  'alkaline': 'bg-orange-900/40 text-orange-300 border-orange-600',
-  'metalloid': 'bg-teal-900/40 text-teal-300 border-teal-600',
-  'halogen': 'bg-yellow-900/40 text-yellow-300 border-yellow-600',
-  'transition': 'bg-blue-900/40 text-blue-300 border-blue-600',
-  'post-transition': 'bg-indigo-900/40 text-indigo-300 border-indigo-600',
-  'lanthanide': 'bg-pink-900/40 text-pink-300 border-pink-600',
-  'actinide': 'bg-fuchsia-900/40 text-fuchsia-300 border-fuchsia-600',
-};
-
-// Componente del Chatbot integrado con la API de Gemini
-const AIChatbot = ({ selectedElement, tempKelvin }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'assistant', text: '¡Hola! Soy tu asistente de química. Preguntame lo que quieras sobre la tabla periódica o sus elementos.' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (isOpen) scrollToBottom();
-  }, [messages, isOpen]);
-
-  const fetchGemini = async (prompt, retries = 5) => {
-    const apiKey = ""; // API Key proveída por el entorno
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-    const delay = (ms) => new Promise(res => setTimeout(res, ms));
-    let currentDelay = 1000;
-
-    const systemPrompt = `Sos un asistente de química integrado en una tabla periódica interactiva.
-      Respondés en castellano rioplatense, sos didáctico, claro, conciso y directo.
-      El usuario está viendo la tabla a una temperatura de ${tempKelvin}K.
-      ${selectedElement ? `Actualmente el usuario tiene seleccionado el elemento: ${selectedElement.name} (${selectedElement.sym}, Número Atómico: ${selectedElement.z}).` : 'El usuario está viendo la vista general de la tabla.'}`;
-
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] }
-          })
-        });
-        
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar una respuesta clara.";
-      } catch (error) {
-        if (i === retries - 1) return "Tuve un problema de conexión. Intentá de nuevo en un momento.";
-        await delay(currentDelay);
-        currentDelay *= 2;
-      }
-    }
-  };
-
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
-    setIsLoading(true);
-
-    const responseText = await fetchGemini(userMessage);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Inteligente</title>
     
-    setMessages(prev => [...prev, { role: 'assistant', text: responseText }]);
-    setIsLoading(false);
-  };
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel para compilar JSX en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-      {/* Ventana del Chat */}
-      {isOpen && (
-        <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-80 md:w-96 h-[450px] mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-400 text-xl">🤖</span>
-              <h3 className="text-slate-200 font-bold">Asistente IA</h3>
-            </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-xl p-3 text-sm ${msg.role === 'user' ? 'bg-cyan-900/50 text-cyan-100 border border-cyan-800/50 rounded-br-sm' : 'bg-slate-800 text-slate-300 border border-slate-700 rounded-bl-sm'}`}>
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-slate-800 border border-slate-700 rounded-xl rounded-bl-sm p-3 text-sm text-slate-400 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+    <style>
+        /* Ajustes menores para las barras de desplazamiento (Scrollbars) */
+        .scrollbar-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #0f172a; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 antialiased selection:bg-cyan-900/50">
+    
+    <!-- Contenedor donde React va a inyectar la aplicación -->
+    <div id="root"></div>
 
-          <form onSubmit={handleSend} className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-            <input 
-              type="text" 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Preguntame sobre química..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
-            />
-            <button 
-              type="submit" 
-              disabled={isLoading || !input.trim()}
-              className="bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-cyan-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-            >
-              Enviar
-            </button>
-          </form>
-        </div>
-      )}
+    <script type="text/babel">
+        // Extraemos los Hooks directamente de la variable global React
+        const { useState, useMemo, useEffect, useRef } = React;
 
-      {/* Botón flotante */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-cyan-900/50"
-      >
-        <span className="text-2xl">{isOpen ? '✕' : '💬'}</span>
-      </button>
-    </div>
-  );
-};
+        // Base de datos de 118 elementos
+        const rawElements = [
+            [1, 'H', 'Hidrógeno', 'nonmetal'], [2, 'He', 'Helio', 'noble'], [3, 'Li', 'Litio', 'alkali'], [4, 'Be', 'Berilio', 'alkaline'], [5, 'B', 'Boro', 'metalloid'], [6, 'C', 'Carbono', 'nonmetal'], [7, 'N', 'Nitrógeno', 'nonmetal'], [8, 'O', 'Oxígeno', 'nonmetal'], [9, 'F', 'Flúor', 'halogen'], [10, 'Ne', 'Neón', 'noble'],
+            [11, 'Na', 'Sodio', 'alkali'], [12, 'Mg', 'Magnesio', 'alkaline'], [13, 'Al', 'Aluminio', 'post-transition'], [14, 'Si', 'Silicio', 'metalloid'], [15, 'P', 'Fósforo', 'nonmetal'], [16, 'S', 'Azufre', 'nonmetal'], [17, 'Cl', 'Cloro', 'halogen'], [18, 'Ar', 'Argón', 'noble'],
+            [19, 'K', 'Potasio', 'alkali'], [20, 'Ca', 'Calcio', 'alkaline'], [21, 'Sc', 'Escandio', 'transition'], [22, 'Ti', 'Titanio', 'transition'], [23, 'V', 'Vanadio', 'transition'], [24, 'Cr', 'Cromo', 'transition'], [25, 'Mn', 'Manganeso', 'transition'], [26, 'Fe', 'Hierro', 'transition'], [27, 'Co', 'Cobalto', 'transition'], [28, 'Ni', 'Níquel', 'transition'], [29, 'Cu', 'Cobre', 'transition'], [30, 'Zn', 'Zinc', 'transition'], [31, 'Ga', 'Galio', 'post-transition'], [32, 'Ge', 'Germanio', 'metalloid'], [33, 'As', 'Arsénico', 'metalloid'], [34, 'Se', 'Selenio', 'nonmetal'], [35, 'Br', 'Bromo', 'halogen'], [36, 'Kr', 'Criptón', 'noble'],
+            [37, 'Rb', 'Rubidio', 'alkali'], [38, 'Sr', 'Estroncio', 'alkaline'], [39, 'Y', 'Itrio', 'transition'], [40, 'Zr', 'Circonio', 'transition'], [41, 'Nb', 'Niobio', 'transition'], [42, 'Mo', 'Molibdeno', 'transition'], [43, 'Tc', 'Tecnecio', 'transition'], [44, 'Ru', 'Rutenio', 'transition'], [45, 'Rh', 'Rodio', 'transition'], [46, 'Pd', 'Paladio', 'transition'], [47, 'Ag', 'Plata', 'transition'], [48, 'Cd', 'Cadmio', 'transition'], [49, 'In', 'Indio', 'post-transition'], [50, 'Sn', 'Estaño', 'post-transition'], [51, 'Sb', 'Antimonio', 'metalloid'], [52, 'Te', 'Telurio', 'metalloid'], [53, 'I', 'Yodo', 'halogen'], [54, 'Xe', 'Xenón', 'noble'],
+            [55, 'Cs', 'Cesio', 'alkali'], [56, 'Ba', 'Bario', 'alkaline'], [57, 'La', 'Lantano', 'lanthanide'], [58, 'Ce', 'Cerio', 'lanthanide'], [59, 'Pr', 'Praseodimio', 'lanthanide'], [60, 'Nd', 'Neodimio', 'lanthanide'], [61, 'Pm', 'Prometio', 'lanthanide'], [62, 'Sm', 'Samario', 'lanthanide'], [63, 'Eu', 'Europio', 'lanthanide'], [64, 'Gd', 'Gadolinio', 'lanthanide'], [65, 'Tb', 'Terbio', 'lanthanide'], [66, 'Dy', 'Disprosio', 'lanthanide'], [67, 'Ho', 'Holmio', 'lanthanide'], [68, 'Er', 'Erbio', 'lanthanide'], [69, 'Tm', 'Tulio', 'lanthanide'], [70, 'Yb', 'Iterbio', 'lanthanide'], [71, 'Lu', 'Lutecio', 'lanthanide'],
+            [72, 'Hf', 'Hafnio', 'transition'], [73, 'Ta', 'Tantalio', 'transition'], [74, 'W', 'Wolframio', 'transition'], [75, 'Re', 'Renio', 'transition'], [76, 'Os', 'Osmio', 'transition'], [77, 'Ir', 'Iridio', 'transition'], [78, 'Pt', 'Platino', 'transition'], [79, 'Au', 'Oro', 'transition'], [80, 'Hg', 'Mercurio', 'transition'], [81, 'Tl', 'Talio', 'post-transition'], [82, 'Pb', 'Plomo', 'post-transition'], [83, 'Bi', 'Bismuto', 'post-transition'], [84, 'Po', 'Polonio', 'metalloid'], [85, 'At', 'Astato', 'halogen'], [86, 'Rn', 'Radón', 'noble'],
+            [87, 'Fr', 'Francio', 'alkali'], [88, 'Ra', 'Radio', 'alkaline'], [89, 'Ac', 'Actinio', 'actinide'], [90, 'Th', 'Torio', 'actinide'], [91, 'Pa', 'Protactinio', 'actinide'], [92, 'U', 'Uranio', 'actinide'], [93, 'Np', 'Neptunio', 'actinide'], [94, 'Pu', 'Plutonio', 'actinide'], [95, 'Am', 'Americio', 'actinide'], [96, 'Cm', 'Curio', 'actinide'], [97, 'Bk', 'Berkelio', 'actinide'], [98, 'Cf', 'Californio', 'actinide'], [99, 'Es', 'Einstenio', 'actinide'], [100, 'Fm', 'Fermio', 'actinide'], [101, 'Md', 'Mendelevio', 'actinide'], [102, 'No', 'Nobelio', 'actinide'], [103, 'Lr', 'Lawrencio', 'actinide'],
+            [104, 'Rf', 'Rutherfordio', 'transition'], [105, 'Db', 'Dubnio', 'transition'], [106, 'Sg', 'Seaborgio', 'transition'], [107, 'Bh', 'Bohrio', 'transition'], [108, 'Hs', 'Hassio', 'transition'], [109, 'Mt', 'Meitnerio', 'transition'], [110, 'Ds', 'Darmstadtio', 'transition'], [111, 'Rg', 'Roentgenio', 'transition'], [112, 'Cn', 'Copernicio', 'transition'], [113, 'Nh', 'Nihonio', 'post-transition'], [114, 'Fl', 'Flerovio', 'post-transition'], [115, 'Mc', 'Moscovio', 'post-transition'], [116, 'Lv', 'Livermorio', 'post-transition'], [117, 'Ts', 'Teneso', 'halogen'], [118, 'Og', 'Oganesón', 'noble']
+        ];
 
-export default function App() {
-  const [currentView, setCurrentView] = useState('table');
-  const [selectedElement, setSelectedElement] = useState(null);
-  const [tempKelvin, setTempKelvin] = useState(298);
-  const [activeFilter, setActiveFilter] = useState(null);
+        // Datos termodinámicos notables
+        const detailedData = {
+            1: { melt: 13.99, boil: 20.27, mass: 1.008, fact: "Elemento más abundante del universo." },
+            2: { melt: 0.95, boil: 4.22, mass: 4.0026, fact: "Único elemento que no se solidifica a presión normal." },
+            6: { melt: 3800, boil: 4300, mass: 12.011, fact: "Base de la vida en la Tierra." },
+            8: { melt: 54.36, boil: 90.18, mass: 15.999, fact: "Gas vital para la respiración aeróbica." },
+            26: { melt: 1811, boil: 3134, mass: 55.845, fact: "Elemento principal del núcleo terrestre." },
+            29: { melt: 1357.77, boil: 2835, mass: 63.546, fact: "Excelente conductor eléctrico y antibacteriano." },
+            35: { melt: 265.8, boil: 332.0, mass: 79.904, fact: "Uno de los dos únicos elementos líquidos a temperatura ambiente." },
+            47: { melt: 1234.93, boil: 2435, mass: 107.87, fact: "Mejor conductor térmico y eléctrico." },
+            79: { melt: 1337.33, boil: 3243, mass: 196.97, fact: "Metal extremadamente maleable e inerte." },
+            80: { melt: 234.32, boil: 629.88, mass: 200.59, fact: "Único metal líquido a temperatura ambiente." },
+            92: { melt: 1405.3, boil: 4404, mass: 238.03, fact: "Principal combustible para reactores nucleares." },
+        };
 
-  const handleSelectElement = (el) => {
-    setSelectedElement(el);
-    setCurrentView('element');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getStateOfMatter = (melt, boil, temp) => {
-    if (!melt && !boil) return 'Desconocido';
-    if (melt && temp < melt) return 'Sólido';
-    if (boil && temp >= boil) return 'Gas';
-    return 'Líquido';
-  };
-
-  const toggleFilter = (stateType) => {
-    setActiveFilter(prev => prev === stateType ? null : stateType);
-  };
-
-  const stateCounts = useMemo(() => {
-    const counts = { 'Sólido': 0, 'Líquido': 0, 'Gas': 0, 'Desconocido': 0 };
-    fullElements.forEach(el => {
-      counts[getStateOfMatter(el.melt, el.boil, tempKelvin)]++;
-    });
-    return counts;
-  }, [tempKelvin]);
-
-  const renderTable = () => (
-    <div className="animate-in fade-in duration-500">
-      <header className="mb-6 bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-100 tracking-tight">Tabla Periódica Inteligente</h1>
-          <p className="text-slate-400 mt-1">Colores normalizados y Asistente IA integrado.</p>
-        </div>
-        
-        <div className="flex-1 max-w-md bg-slate-800/50 p-4 rounded-xl border border-slate-700 w-full">
-          <label className="flex justify-between text-sm font-semibold mb-2 text-slate-300">
-            <span>Simulador Térmico</span>
-            <span className="text-cyan-400 bg-cyan-950/50 border border-cyan-800 px-2 py-0.5 rounded-md font-mono">
-              {tempKelvin} K / {(tempKelvin - 273.15).toFixed(1)} °C
-            </span>
-          </label>
-          <input 
-            type="range" min="0" max="6000" 
-            value={tempKelvin} onChange={(e) => setTempKelvin(Number(e.target.value))}
-            className="w-full accent-cyan-500 cursor-pointer h-2 bg-slate-700 rounded-lg appearance-none"
-          />
-        </div>
-      </header>
-
-      <div className="flex flex-wrap gap-4 text-sm justify-center mb-8">
-        <button onClick={() => toggleFilter('Gas')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Gas' ? 'bg-slate-800 border-white text-white shadow-lg' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-          <div className="w-4 h-4 border-dashed border-2 border-slate-400 rounded-sm opacity-60"></div> Gases
-        </button>
-        <button onClick={() => toggleFilter('Líquido')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Líquido' ? 'bg-cyan-950 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(56,189,248,0.3)]' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-          <div className="w-4 h-4 bg-cyan-900 border border-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.5)] rounded-sm"></div> Líquidos
-        </button>
-        <button onClick={() => toggleFilter('Sólido')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Sólido' ? 'bg-slate-800 border-slate-300 text-white shadow-lg' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-          <div className="w-4 h-4 bg-slate-600 border border-slate-400 rounded-sm"></div> Sólidos
-        </button>
-      </div>
-
-      <div className="overflow-x-auto pb-8 scrollbar-thin scrollbar-thumb-slate-700">
-        <div className="min-w-[1100px] relative" style={{ display: 'grid', gridTemplateColumns: 'repeat(18, minmax(50px, 1fr))', gap: '6px', gridTemplateRows: 'repeat(10, minmax(55px, 1fr))' }}>
-          
-          {Array.from({ length: 18 }).map((_, i) => (
-            <div key={`col-${i}`} className="text-center text-[0.65rem] text-slate-500 font-bold mb-1" style={{ gridColumn: i + 1, gridRow: 1 }}>{i + 1}</div>
-          ))}
-
-          {/* Panel de Estadísticas */}
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-center backdrop-blur-sm" style={{ gridColumn: '3 / span 10', gridRow: '2 / span 2', margin: '4px' }}>
-            <h3 className="text-slate-300 text-sm font-bold uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Estado General de la Materia a {tempKelvin}K</h3>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
-                <p className="text-xs text-slate-500 mb-1">Sólidos</p>
-                <p className="text-2xl font-mono text-slate-200">{stateCounts['Sólido']}</p>
-              </div>
-              <div className="bg-cyan-950/20 rounded-lg p-2 border border-cyan-900/30">
-                <p className="text-xs text-cyan-500/70 mb-1">Líquidos</p>
-                <p className="text-2xl font-mono text-cyan-400">{stateCounts['Líquido']}</p>
-              </div>
-              <div className="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
-                <p className="text-xs text-slate-500 mb-1">Gases</p>
-                <p className="text-2xl font-mono text-white/60">{stateCounts['Gas']}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Celdas de la Tabla */}
-          {fullElements.map((el) => {
-            const stateMatter = getStateOfMatter(el.melt, el.boil, tempKelvin);
-            const isFilteredOut = activeFilter && activeFilter !== stateMatter;
-            let stateStyles = "transition-all duration-300 cursor-pointer ";
+        const fullElements = rawElements.map(data => {
+            const [z, sym, name, cat] = data;
+            let row = 0, col = 0;
             
-            if (isFilteredOut) {
-              stateStyles += "opacity-15 grayscale pointer-events-none";
-            } else {
-              stateStyles += "opacity-100 hover:scale-110 z-10 hover:z-20 ";
-              if (stateMatter === 'Gas') stateStyles += " opacity-40 border-dashed border-white/40";
-              if (stateMatter === 'Líquido') stateStyles += " shadow-[0_0_10px_rgba(56,189,248,0.5)] border-cyan-400";
+            if (z >= 57 && z <= 71) { row = 9; col = z - 53; }
+            else if (z >= 89 && z <= 103) { row = 10; col = z - 85; }
+            else {
+                if (z <= 2) { row = 1; col = z === 1 ? 1 : 18; }
+                else if (z <= 10) { row = 2; col = z <= 4 ? z - 2 : z + 8; }
+                else if (z <= 18) { row = 3; col = z <= 12 ? z - 10 : z; }
+                else if (z <= 36) { row = 4; col = z - 18; }
+                else if (z <= 54) { row = 5; col = z - 36; }
+                else if (z <= 86) { row = 6; col = z - 54 > 17 ? z - 68 : z - 54; }
+                else { row = 7; col = z - 86 > 17 ? z - 100 : z - 86; }
             }
-            
-            let actualRow = el.row;
-            if (actualRow > 1) actualRow += 1; 
-            if (actualRow > 8) actualRow += 1; 
+
+            const details = detailedData[z] || {};
+            return { 
+                z, sym, name, cat, row, col, 
+                melt: details.melt || (z > 103 ? null : 1000 + (z % 10) * 100), 
+                boil: details.boil || (z > 103 ? null : 2500 + (z % 10) * 100), 
+                mass: details.mass || (z * 2.5).toFixed(2),
+                fact: details.fact || "Datos avanzados disponibles."
+            };
+        });
+
+        const categoryColors = {
+            'nonmetal': 'bg-emerald-900/40 text-emerald-300 border-emerald-600',
+            'noble': 'bg-purple-900/40 text-purple-300 border-purple-600',
+            'alkali': 'bg-red-900/40 text-red-300 border-red-600',
+            'alkaline': 'bg-orange-900/40 text-orange-300 border-orange-600',
+            'metalloid': 'bg-teal-900/40 text-teal-300 border-teal-600',
+            'halogen': 'bg-yellow-900/40 text-yellow-300 border-yellow-600',
+            'transition': 'bg-blue-900/40 text-blue-300 border-blue-600',
+            'post-transition': 'bg-indigo-900/40 text-indigo-300 border-indigo-600',
+            'lanthanide': 'bg-pink-900/40 text-pink-300 border-pink-600',
+            'actinide': 'bg-fuchsia-900/40 text-fuchsia-300 border-fuchsia-600',
+        };
+
+        const AIChatbot = ({ selectedElement, tempKelvin }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([
+                { role: 'assistant', text: '¡Hola! Soy tu asistente de química. Preguntame lo que quieras. (Nota: Si alojás esto en GitHub, requerirás agregar una API key válida en el código fuente para que pueda responderte).' }
+            ]);
+            const [input, setInput] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const messagesEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
+
+            useEffect(() => {
+                if (isOpen) scrollToBottom();
+            }, [messages, isOpen]);
+
+            const fetchGemini = async (prompt, retries = 5) => {
+                const apiKey = ""; // <-- ACÁ IRÍA TU API KEY SI LO ALOJÁS POR TU CUENTA
+                
+                if (!apiKey) {
+                    return "Para que pueda procesar información fuera del entorno de desarrollo original, necesitás proveer una clave de API válida de Gemini en el archivo fuente HTML.";
+                }
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const delay = (ms) => new Promise(res => setTimeout(res, ms));
+                let currentDelay = 1000;
+
+                const systemPrompt = `Sos un asistente de química. El usuario está viendo la tabla a ${tempKelvin}K.`;
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                systemInstruction: { parts: [{ text: systemPrompt }] }
+                            })
+                        });
+                        
+                        if (!response.ok) throw new Error(`HTTP error`);
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude generar respuesta.";
+                    } catch (error) {
+                        if (i === retries - 1) return "Error de conexión con la IA.";
+                        await delay(currentDelay);
+                        currentDelay *= 2;
+                    }
+                }
+            };
+
+            const handleSend = async (e) => {
+                e.preventDefault();
+                if (!input.trim() || isLoading) return;
+
+                const userMessage = input.trim();
+                setInput('');
+                setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+                setIsLoading(true);
+
+                const responseText = await fetchGemini(userMessage);
+                
+                setMessages(prev => [...prev, { role: 'assistant', text: responseText }]);
+                setIsLoading(false);
+            };
 
             return (
-              <button
-                key={el.z}
-                onClick={() => handleSelectElement(el)}
-                className={`relative p-1 border rounded flex flex-col items-center justify-center aspect-square ${categoryColors[el.cat]} ${stateStyles}`}
-                style={{ gridColumn: el.col, gridRow: actualRow }}
-              >
-                <span className="absolute top-0.5 left-1 text-[0.55rem] font-bold opacity-80">{el.z}</span>
-                <span className="text-lg font-bold mt-2">{el.sym}</span>
-                <span className="text-[0.45rem] truncate w-full text-center mt-auto pb-0.5">{el.name}</span>
-              </button>
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+                    {isOpen && (
+                        <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-80 md:w-96 h-[450px] mb-4 flex flex-col overflow-hidden transition-all duration-300">
+                            <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-cyan-400 text-xl">🤖</span>
+                                    <h3 className="text-slate-200 font-bold">Asistente IA</h3>
+                                </div>
+                                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
+                                {messages.map((msg, idx) => (
+                                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[85%] rounded-xl p-3 text-sm ${msg.role === 'user' ? 'bg-cyan-900/50 text-cyan-100 border border-cyan-800/50 rounded-br-sm' : 'bg-slate-800 text-slate-300 border border-slate-700 rounded-bl-sm'}`}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+                                {isLoading && (
+                                    <div className="flex justify-start">
+                                        <div className="bg-slate-800 border border-slate-700 rounded-xl rounded-bl-sm p-3 text-sm text-slate-400">Escribiendo...</div>
+                                    </div>
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            <form onSubmit={handleSend} className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
+                                <input 
+                                    type="text" 
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder="Preguntame sobre química..."
+                                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                                />
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading || !input.trim()}
+                                    className="bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:hover:bg-cyan-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                                >
+                                    Enviar
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                    <button 
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:scale-105 transition-all focus:outline-none focus:ring-4 focus:ring-cyan-900/50"
+                    >
+                        <span className="text-2xl">{isOpen ? '✕' : '💬'}</span>
+                    </button>
+                </div>
             );
-          })}
-        </div>
-      </div>
-    </div>
-  );
+        };
 
-  const renderElementPage = () => {
-    if (!selectedElement) return null;
-    const el = selectedElement;
+        const App = () => {
+            const [currentView, setCurrentView] = useState('table');
+            const [selectedElement, setSelectedElement] = useState(null);
+            const [tempKelvin, setTempKelvin] = useState(298);
+            const [activeFilter, setActiveFilter] = useState(null);
 
-    return (
-      <div className="animate-in slide-in-from-right-8 fade-in duration-300 pb-12">
-        <button 
-          onClick={() => { setCurrentView('table'); setSelectedElement(null); }}
-          className="group flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 hover:border-slate-600"
-        >
-          <span className="group-hover:-translate-x-1 transition-transform">←</span>
-          Volver a la Tabla
-        </button>
+            const handleSelectElement = (el) => {
+                setSelectedElement(el);
+                setCurrentView('element');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
 
-        <div className={`rounded-3xl p-8 mb-8 border-t-4 shadow-2xl flex flex-col md:flex-row gap-8 items-center bg-slate-900 border border-slate-800 ${categoryColors[el.cat]?.split(' ')[2].replace('border-', 'border-t-')}`}>
-          <div className={`w-40 h-40 rounded-2xl flex flex-col items-center justify-center border-4 shadow-inner ${categoryColors[el.cat]} relative overflow-hidden`}>
-            <span className="absolute top-2 left-3 text-lg font-bold opacity-70">{el.z}</span>
-            <span className="text-6xl font-black tracking-tighter">{el.sym}</span>
-          </div>
-          
-          <div className="flex-1">
-            <h1 className="text-5xl font-black text-white mb-2">{el.name}</h1>
-            <div className="flex flex-wrap gap-3">
-              <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-slate-700 capitalize">
-                {el.cat.replace('-', ' ')}
-              </span>
-              <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-slate-700">
-                Masa: {el.mass} u
-              </span>
-            </div>
-            <p className="mt-4 text-lg text-slate-400 font-light border-l-2 border-slate-700 pl-4">
-              {el.fact}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
+            const getStateOfMatter = (melt, boil, temp) => {
+                if (!melt && !boil) return 'Desconocido';
+                if (melt && temp < melt) return 'Sólido';
+                if (boil && temp >= boil) return 'Gas';
+                return 'Líquido';
+            };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans selection:bg-cyan-900/50">
-      <div className="max-w-[1400px] mx-auto">
-        {currentView === 'table' ? renderTable() : renderElementPage()}
-      </div>
-      
-      {/* Componente Chatbot Global */}
-      <AIChatbot selectedElement={selectedElement} tempKelvin={tempKelvin} />
-    </div>
-  );
-}
+            const toggleFilter = (stateType) => {
+                setActiveFilter(prev => prev === stateType ? null : stateType);
+            };
+
+            const stateCounts = useMemo(() => {
+                const counts = { 'Sólido': 0, 'Líquido': 0, 'Gas': 0, 'Desconocido': 0 };
+                fullElements.forEach(el => {
+                    counts[getStateOfMatter(el.melt, el.boil, tempKelvin)]++;
+                });
+                return counts;
+            }, [tempKelvin]);
+
+            const renderTable = () => (
+                <div className="transition-opacity duration-500">
+                    <header className="mb-6 bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-100 tracking-tight">Tabla Periódica Dinámica</h1>
+                            <p className="text-slate-400 mt-1">Versión compilada. Apta para alojamiento externo.</p>
+                        </div>
+                        
+                        <div className="flex-1 max-w-md bg-slate-800/50 p-4 rounded-xl border border-slate-700 w-full">
+                            <label className="flex justify-between text-sm font-semibold mb-2 text-slate-300">
+                                <span>Simulador Térmico</span>
+                                <span className="text-cyan-400 bg-cyan-950/50 border border-cyan-800 px-2 py-0.5 rounded-md font-mono">
+                                    {tempKelvin} K / {(tempKelvin - 273.15).toFixed(1)} °C
+                                </span>
+                            </label>
+                            <input 
+                                type="range" min="0" max="6000" 
+                                value={tempKelvin} onChange={(e) => setTempKelvin(Number(e.target.value))}
+                                className="w-full accent-cyan-500 cursor-pointer h-2 bg-slate-700 rounded-lg appearance-none"
+                            />
+                        </div>
+                    </header>
+
+                    <div className="flex flex-wrap gap-4 text-sm justify-center mb-8">
+                        <button onClick={() => toggleFilter('Gas')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Gas' ? 'bg-slate-800 border-white text-white shadow-lg' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                            <div className="w-4 h-4 border-dashed border-2 border-slate-400 rounded-sm opacity-60"></div> Gases
+                        </button>
+                        <button onClick={() => toggleFilter('Líquido')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Líquido' ? 'bg-cyan-950 border-cyan-400 text-cyan-100 shadow-[0_0_15px_rgba(56,189,248,0.3)]' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                            <div className="w-4 h-4 bg-cyan-900 border border-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.5)] rounded-sm"></div> Líquidos
+                        </button>
+                        <button onClick={() => toggleFilter('Sólido')} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${activeFilter === 'Sólido' ? 'bg-slate-800 border-slate-300 text-white shadow-lg' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                            <div className="w-4 h-4 bg-slate-600 border border-slate-400 rounded-sm"></div> Sólidos
+                        </button>
+                    </div>
+
+                    <div className="overflow-x-auto pb-8 scrollbar-thin">
+                        <div className="min-w-[1100px] relative" style={{ display: 'grid', gridTemplateColumns: 'repeat(18, minmax(50px, 1fr))', gap: '6px', gridTemplateRows: 'repeat(10, minmax(55px, 1fr))' }}>
+                            
+                            {Array.from({ length: 18 }).map((_, i) => (
+                                <div key={`col-${i}`} className="text-center text-[0.65rem] text-slate-500 font-bold mb-1" style={{ gridColumn: i + 1, gridRow: 1 }}>{i + 1}</div>
+                            ))}
+
+                            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-center backdrop-blur-sm" style={{ gridColumn: '3 / span 10', gridRow: '2 / span 2', margin: '4px' }}>
+                                <h3 className="text-slate-300 text-sm font-bold uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Estado General de la Materia a {tempKelvin}K</h3>
+                                <div className="grid grid-cols-3 gap-4 text-center">
+                                    <div className="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
+                                        <p className="text-xs text-slate-500 mb-1">Sólidos</p>
+                                        <p className="text-2xl font-mono text-slate-200">{stateCounts['Sólido']}</p>
+                                    </div>
+                                    <div className="bg-cyan-950/20 rounded-lg p-2 border border-cyan-900/30">
+                                        <p className="text-xs text-cyan-500/70 mb-1">Líquidos</p>
+                                        <p className="text-2xl font-mono text-cyan-400">{stateCounts['Líquido']}</p>
+                                    </div>
+                                    <div className="bg-slate-950/50 rounded-lg p-2 border border-slate-800">
+                                        <p className="text-xs text-slate-500 mb-1">Gases</p>
+                                        <p className="text-2xl font-mono text-white/60">{stateCounts['Gas']}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {fullElements.map((el) => {
+                                const stateMatter = getStateOfMatter(el.melt, el.boil, tempKelvin);
+                                const isFilteredOut = activeFilter && activeFilter !== stateMatter;
+                                let stateStyles = "transition-all duration-300 cursor-pointer ";
+                                
+                                if (isFilteredOut) {
+                                    stateStyles += "opacity-15 grayscale pointer-events-none";
+                                } else {
+                                    stateStyles += "opacity-100 hover:scale-110 z-10 hover:z-20 ";
+                                    if (stateMatter === 'Gas') stateStyles += " opacity-40 border-dashed border-white/40";
+                                    if (stateMatter === 'Líquido') stateStyles += " shadow-[0_0_10px_rgba(56,189,248,0.5)] border-cyan-400";
+                                }
+                                
+                                let actualRow = el.row;
+                                if (actualRow > 1) actualRow += 1; 
+                                if (actualRow > 8) actualRow += 1; 
+
+                                return (
+                                    <button
+                                        key={el.z}
+                                        onClick={() => handleSelectElement(el)}
+                                        className={`relative p-1 border rounded flex flex-col items-center justify-center aspect-square ${categoryColors[el.cat]} ${stateStyles}`}
+                                        style={{ gridColumn: el.col, gridRow: actualRow }}
+                                    >
+                                        <span className="absolute top-0.5 left-1 text-[0.55rem] font-bold opacity-80">{el.z}</span>
+                                        <span className="text-lg font-bold mt-2">{el.sym}</span>
+                                        <span className="text-[0.45rem] truncate w-full text-center mt-auto pb-0.5">{el.name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderElementPage = () => {
+                if (!selectedElement) return null;
+                const el = selectedElement;
+
+                return (
+                    <div className="pb-12">
+                        <button 
+                            onClick={() => { setCurrentView('table'); setSelectedElement(null); }}
+                            className="group flex items-center gap-2 text-slate-400 hover:text-white mb-6 transition-colors bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 hover:border-slate-600"
+                        >
+                            <span className="group-hover:-translate-x-1 transition-transform">←</span>
+                            Volver a la Tabla
+                        </button>
+
+                        <div className={`rounded-3xl p-8 mb-8 border-t-4 shadow-2xl flex flex-col md:flex-row gap-8 items-center bg-slate-900 border border-slate-800 ${categoryColors[el.cat]?.split(' ')[2].replace('border-', 'border-t-')}`}>
+                            <div className={`w-40 h-40 rounded-2xl flex flex-col items-center justify-center border-4 shadow-inner ${categoryColors[el.cat]} relative overflow-hidden`}>
+                                <span className="absolute top-2 left-3 text-lg font-bold opacity-70">{el.z}</span>
+                                <span className="text-6xl font-black tracking-tighter">{el.sym}</span>
+                            </div>
+                            
+                            <div className="flex-1">
+                                <h1 className="text-5xl font-black text-white mb-2">{el.name}</h1>
+                                <div className="flex flex-wrap gap-3">
+                                    <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-slate-700 capitalize">
+                                        {el.cat.replace('-', ' ')}
+                                    </span>
+                                    <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-slate-700">
+                                        Masa: {el.mass} u
+                                    </span>
+                                </div>
+                                <p className="mt-4 text-lg text-slate-400 font-light border-l-2 border-slate-700 pl-4">
+                                    {el.fact}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="p-4 md:p-8">
+                    <div className="max-w-[1400px] mx-auto">
+                        {currentView === 'table' ? renderTable() : renderElementPage()}
+                    </div>
+                    <AIChatbot selectedElement={selectedElement} tempKelvin={tempKelvin} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
